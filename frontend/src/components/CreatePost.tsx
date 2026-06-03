@@ -21,7 +21,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       
-      const newFiles = [...imageFiles, ...files].slice(0, 10);
+      // Проверка размера файла (максимум 2MB)
+      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+      const validFiles = files.filter(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`Файл ${file.name} превышает 2MB и не будет загружен`);
+          return false;
+        }
+        return true;
+      });
+      
+      const newFiles = [...imageFiles, ...validFiles].slice(0, 10);
       setImageFiles(newFiles);
       
       const newPreviews = newFiles.map(file => URL.createObjectURL(file));
@@ -58,11 +68,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
       formData.append('content', content);
       formData.append('privacy', privacy);
       
-      imageFiles.forEach(file => {
+      // Добавляем только валидные файлы
+      for (const file of imageFiles) {
         formData.append('images', file);
-      });
+      }
       
-      console.log('Отправка поста:', { content, privacy, imagesCount: imageFiles.length });
+      console.log('Отправка поста:', { 
+        content: content.substring(0, 50), 
+        privacy, 
+        imagesCount: imageFiles.length,
+        totalSize: imageFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024 + 'MB'
+      });
       
       const response = await postsAPI.createPost(formData);
       console.log('Пост создан:', response.data);
@@ -71,7 +87,14 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
       onClose();
     } catch (err: any) {
       console.error('Ошибка при создании поста:', err);
-      setError(err.response?.data?.detail || err.message || 'Ошибка при создании поста');
+      
+      if (err.code === 'ERR_NETWORK') {
+        setError('Ошибка сети. Проверьте соединение или попробуйте файлы меньшего размера.');
+      } else if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError(err.message || 'Ошибка при создании поста');
+      }
     } finally {
       setLoading(false);
     }
@@ -159,6 +182,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
                 <span className="modal-action-icon">📷</span>
                 Фото
               </label>
+              {imageFiles.length > 0 && (
+                <span className="files-size-info">
+                  Общий размер: {(imageFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)}MB
+                </span>
+              )}
             </div>
             
             <div className="modal-submit-actions">

@@ -6,7 +6,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { useAuth } from '../contexts/AuthContext';
 import { getAvatarUrl, handleImageError as handleAvatarError } from '../utils/avatar';
-import { getImageUrl, handleImageError } from '../utils/image';
+import { handleImageError } from '../utils/image';
 import CreatePost from '../components/CreatePost';
 import Gallery from '../components/Gallery';
 import '../styles/Profile.css';
@@ -64,6 +64,11 @@ interface DonationTier {
   benefits: string[];
 }
 
+const getBase64Image = (imageData: string, mimeType: string): string => {
+  if (!imageData) return '';
+  return `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
+};
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -112,12 +117,6 @@ const Profile: React.FC = () => {
   const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
   
   const galleryLoadedRef = useRef<boolean>(false);
-
-  // Функция для получения base64 изображения
-  const getBase64Image = (imageData: string, mimeType: string): string => {
-    if (!imageData) return '';
-    return `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
-  };
 
   const loadUserGames = useCallback(async () => {
     try {
@@ -243,10 +242,10 @@ const Profile: React.FC = () => {
         commentsList: [],
         time: new Date(post.created_at).toLocaleString(),
         privacy: post.privacy,
-        photos: post.images?.map(img => ({
-          image_data: img.image_data || img.image_url,
+        photos: (post.images || []).map((img: any) => ({
+          image_data: img.image_data || img.image_url || '',
           image_mime: img.image_mime || 'image/jpeg'
-        })) || [],
+        })),
         isLiked: post.is_liked,
         showComments: false
       }));
@@ -866,7 +865,7 @@ const Profile: React.FC = () => {
                         onClick={() => setSelectedFullImage(image)}
                       >
                         <img 
-                          src={getBase64Image(image.image_data, image.image_mime)}
+                          src={getBase64Image(image.image_data, image.image_mime)} 
                           alt={`Фото ${index + 1}`}
                           onError={handleImageError}
                         />
@@ -1367,7 +1366,10 @@ const Profile: React.FC = () => {
             </>
           )}
           <img 
-            src={getBase64Image(selectedFullImage.image_data, selectedFullImage.image_mime)} 
+            src={getBase64Image(
+              selectedFullImage.image_data || (selectedPostPhotos[selectedPostPhotoIndex]?.image_data || ''),
+              selectedFullImage.image_mime || (selectedPostPhotos[selectedPostPhotoIndex]?.image_mime || 'image/jpeg')
+            )} 
             alt="Full size"
             onClick={(e) => e.stopPropagation()}
             onError={handleImageError}

@@ -6,9 +6,10 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { useAuth } from '../contexts/AuthContext';
 import { getAvatarUrl, handleImageError } from '../utils/avatar';
-import { getImageUrl, handleImageError as handleImageErrorUtil } from '../utils/image';
+import { handleImageError as handleImageErrorUtil } from '../utils/image';
 import AuthModal from '../components/AuthModal';
 import DonationModal from '../components/DonationModal';
+import Gallery from '../components/Gallery';
 import '../styles/PartnerProfile.css';
 
 interface Post {
@@ -22,7 +23,7 @@ interface Post {
   commentsList?: Comment[];
   time: string;
   privacy: string;
-  photos: string[];
+  photos: { image_data: string; image_mime: string }[];
   isLiked?: boolean;
   showComments?: boolean;
 }
@@ -30,7 +31,8 @@ interface Post {
 interface GalleryImage {
   id: number;
   post_id: number;
-  image_url: string;
+  image_data: string;
+  image_mime: string;
   created_at: string;
 }
 
@@ -43,6 +45,11 @@ interface DonationTier {
   color: string;
   benefits: string[];
 }
+
+const getBase64Image = (imageData: string, mimeType: string): string => {
+  if (!imageData) return '';
+  return `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
+};
 
 const PartnerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +82,7 @@ const PartnerProfile: React.FC = () => {
   
   // Состояния для просмотра фото из поста
   const [showPostPhotosModal, setShowPostPhotosModal] = useState<boolean>(false);
-  const [selectedPostPhotos, setSelectedPostPhotos] = useState<string[]>([]);
+  const [selectedPostPhotos, setSelectedPostPhotos] = useState<{ image_data: string; image_mime: string }[]>([]);
   const [selectedPostPhotoIndex, setSelectedPostPhotoIndex] = useState<number>(0);
   
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -143,7 +150,10 @@ const PartnerProfile: React.FC = () => {
         commentsList: [],
         time: new Date(post.created_at).toLocaleString(),
         privacy: post.privacy,
-        photos: post.images.map(img => img.image_url),
+        photos: (post.images || []).map((img: any) => ({
+          image_data: img.image_data || img.image_url || '',
+          image_mime: img.image_mime || 'image/jpeg'
+        })),
         isLiked: post.is_liked,
         showComments: false
       }));
@@ -457,7 +467,7 @@ const PartnerProfile: React.FC = () => {
   };
 
   // Функции для просмотра фото из поста
-  const openPostPhotosModal = (photos: string[], index: number = 0) => {
+  const openPostPhotosModal = (photos: { image_data: string; image_mime: string }[], index: number = 0) => {
     setSelectedPostPhotos(photos);
     setSelectedPostPhotoIndex(index);
     setShowPostPhotosModal(true);
@@ -750,7 +760,7 @@ const PartnerProfile: React.FC = () => {
                         onClick={() => handleImageClick(image)}
                       >
                         <img 
-                          src={getImageUrl(image.image_url)} 
+                          src={getBase64Image(image.image_data, image.image_mime)} 
                           alt={`Фото ${index + 1}`}
                           onError={handleImageErrorUtil}
                         />
@@ -817,7 +827,7 @@ const PartnerProfile: React.FC = () => {
                         {post.photos.length === 1 ? (
                           <div className="single-photo">
                             <img 
-                              src={getImageUrl(post.photos[0])} 
+                              src={getBase64Image(post.photos[0].image_data, post.photos[0].image_mime)} 
                               alt="Post" 
                               onError={handleImageErrorUtil}
                               onClick={() => openPostPhotosModal(post.photos, 0)}
@@ -834,7 +844,7 @@ const PartnerProfile: React.FC = () => {
                                 style={{ cursor: 'pointer' }}
                               >
                                 <img 
-                                  src={getImageUrl(photo)} 
+                                  src={getBase64Image(photo.image_data, photo.image_mime)} 
                                   alt={`Post ${index + 1}`}
                                   onError={handleImageErrorUtil}
                                 />
@@ -1090,25 +1100,10 @@ const PartnerProfile: React.FC = () => {
       
       {/* Модалка галереи */}
       {showGalleryModal && isAuthenticated && (
-        <div className="modal-overlay" onClick={() => setShowGalleryModal(false)}>
-          <div className="modal-content gallery-modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Все фото</h2>
-              <button className="modal-close" onClick={() => setShowGalleryModal(false)}>✕</button>
-            </div>
-            <div className="gallery-modal-grid">
-              {galleryImages.map((image, index) => (
-                <div key={image.id} className="gallery-modal-item" onClick={() => handleImageClick(image)}>
-                  <img 
-                    src={getImageUrl(image.image_url)} 
-                    alt={`Фото ${index + 1}`}
-                    onError={handleImageErrorUtil}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <Gallery 
+          images={galleryImages} 
+          onClose={() => setShowGalleryModal(false)} 
+        />
       )}
       
       {/* Модалка для просмотра всех фото поста */}
@@ -1133,12 +1128,18 @@ const PartnerProfile: React.FC = () => {
                   className="post-photos-modal-item"
                   onClick={() => {
                     setSelectedPostPhotoIndex(index);
-                    setSelectedFullImage({ id: index, post_id: 0, image_url: photo, created_at: '' });
+                    setSelectedFullImage({ 
+                      id: index, 
+                      post_id: 0, 
+                      image_data: photo.image_data, 
+                      image_mime: photo.image_mime, 
+                      created_at: '' 
+                    });
                     setShowPostPhotosModal(false);
                   }}
                 >
                   <img 
-                    src={getImageUrl(photo)} 
+                    src={getBase64Image(photo.image_data, photo.image_mime)} 
                     alt={`Фото ${index + 1}`}
                     onError={handleImageErrorUtil}
                   />
@@ -1185,7 +1186,10 @@ const PartnerProfile: React.FC = () => {
             </>
           )}
           <img 
-            src={getImageUrl(selectedPostPhotos[selectedPostPhotoIndex] || selectedFullImage.image_url)} 
+            src={getBase64Image(
+              selectedFullImage.image_data || (selectedPostPhotos[selectedPostPhotoIndex]?.image_data || ''),
+              selectedFullImage.image_mime || (selectedPostPhotos[selectedPostPhotoIndex]?.image_mime || 'image/jpeg')
+            )} 
             alt="Full size"
             onClick={(e) => e.stopPropagation()}
             onError={handleImageErrorUtil}

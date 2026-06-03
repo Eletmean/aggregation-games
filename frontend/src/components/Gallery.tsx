@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { getImageUrl, handleImageError } from '../utils/image';
 
 interface GalleryImage {
   id: number;
   post_id: number;
-  image_url: string;
+  image_data: string;
+  image_mime: string;
   created_at: string;
 }
 
@@ -12,6 +12,11 @@ interface GalleryProps {
   images: GalleryImage[];
   onClose: () => void;
 }
+
+const getBase64Image = (imageData: string, mimeType: string): string => {
+  if (!imageData) return '';
+  return `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
+};
 
 const Gallery: React.FC<GalleryProps> = ({ images, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
@@ -62,10 +67,9 @@ const Gallery: React.FC<GalleryProps> = ({ images, onClose }) => {
                 onClick={() => handleImageClick(image, index)}
               >
                 <img 
-                  src={getImageUrl(image.image_url)} 
+                  src={getBase64Image(image.image_data, image.image_mime)} 
                   alt={`Фото ${index + 1}`}
                   className="gallery-modal-img"
-                  onError={handleImageError}
                 />
               </div>
             ))}
@@ -111,11 +115,10 @@ const Gallery: React.FC<GalleryProps> = ({ images, onClose }) => {
           )}
           
           <img 
-            src={getImageUrl(selectedImage.image_url)} 
+            src={getBase64Image(selectedImage.image_data, selectedImage.image_mime)} 
             alt="Full size"
             className="gallery-fullscreen-img"
             onClick={(e) => e.stopPropagation()}
-            onError={handleImageError}
           />
           
           {images.length > 1 && (

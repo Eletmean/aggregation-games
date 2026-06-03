@@ -1,0 +1,575 @@
+.games-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 80px; 
+  width: 100%;
+}
+
+.games-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 25px 0;
+}
+
+.games-title {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.games-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Поиск и фильтры */
+.games-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.games-search {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  background: var(--primary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.games-search:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.15);
+}
+
+.games-search::placeholder {
+  color: var(--text-muted);
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.games-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.games-count {
+  background: var(--secondary-bg);
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-weight: 500;
+}
+
+.clear-search-btn {
+  padding: 6px 12px;
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  background: var(--error-color-dark);
+}
+
+/* Сетка игр - центрированная */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+  justify-items: center;
+  align-items: start;
+}
+
+/* Карточка игры */
+.game-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 320px;
+}
+
+.game-card:hover {
+  box-shadow: 0 8px 25px rgba(108, 99, 255, 0.15);
+  border-color: var(--accent-purple);
+}
+
+/* Вытянутый горизонтальный контейнер для картинки */
+.game-image-container {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-purple-light) 100%);
+}
+
+.game-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Убрали overlay при наведении */
+.game-overlay {
+  display: none;
+}
+
+/* Кнопка всегда видна под фото */
+.game-action-btn {
+  background: var(--accent-purple);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.game-action-btn:hover {
+  background: var(--accent-purple-light);
+}
+
+.game-content {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.game-actions {
+  margin-top: auto;
+}
+
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  width: 100%;
+}
+
+.btn-primary {
+  background: var(--accent-purple);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-purple-light);
+}
+
+.btn-secondary {
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--border-color);
+}
+
+/* Состояния загрузки */
+.loading-container {
+  text-align: center;
+  padding: 60px 20px 80px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--accent-purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 60px 20px 80px; 
+  color: var(--text-secondary);
+}
+
+.error-message {
+  margin-bottom: 20px;
+  color: var(--error-color);
+  font-size: 1.1rem;
+}
+
+.retry-btn {
+  padding: 12px 30px;
+  background: var(--accent-purple);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: var(--accent-purple-light);
+  transform: translateY(-2px);
+}
+
+/* Нет игр */
+.no-games {
+  text-align: center;
+  padding: 60px 20px 80px; 
+  color: var(--text-secondary);
+}
+
+.no-games-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+
+.no-games h3 {
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-size: 1.3rem;
+}
+
+.no-games p {
+  font-size: 0.95rem;
+}
+
+/* Модальное окно для игроков */
+.players-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-body {
+  padding: 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.players-list {
+  padding: 10px;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.3s ease;
+}
+
+.player-item:hover {
+  background: var(--primary-bg);
+}
+
+.player-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.player-username {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.player-bio {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.no-players {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.no-players-hint {
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.loading-players {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.loading-spinner-small {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--accent-purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+/* ===== АДАПТИВНОСТЬ - КАРТОЧКИ ЕЩЕ БОЛЬШЕ ===== */
+@media (max-width: 768px) {
+  .games-page {
+    padding: 30px 15px 60px; 
+  }
+  
+  .games-header {
+    padding: 20px 0;
+  }
+  
+  .games-title {
+    font-size: 1.7rem;
+  }
+  
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-items: center;
+  }
+  
+  .game-card {
+    max-width: 320px;
+  }
+  
+  .game-image-container {
+    height: 240px;
+  }
+  
+  .game-name {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  
+  .game-card {
+    max-width: 280px;
+  }
+  
+  .game-image-container {
+    height: 210px;
+  }
+}
+
+@media (max-width: 580px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    justify-items: center;
+  }
+  
+  .game-card {
+    max-width: 260px;
+  }
+  
+  .game-image-container {
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    height: auto;
+  }
+  
+  .game-content {
+    padding: 12px;
+  }
+  
+  .game-name {
+    font-size: 0.95rem;
+  }
+  
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .game-action-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .games-grid {
+    gap: 14px;
+  }
+  
+  .game-card {
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .games-page {
+    padding: 20px 10px 50px; 
+  }
+  
+  .games-header {
+    padding: 15px 0;
+  }
+  
+  .games-title {
+    font-size: 1.5rem;
+  }
+  
+  .games-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    justify-items: center;
+  }
+  
+  .game-card {
+    max-width: 220px;
+  }
+  
+  .game-image-container {
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    height: auto;
+  }
+  
+  .game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .game-content {
+    padding: 10px;
+  }
+  
+  .game-name {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    width: 100%;
+  }
+  
+  .game-action-btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .games-grid {
+    gap: 12px;
+  }
+  
+  .game-card {
+    max-width: 190px;
+  }
+  
+  .game-name {
+    font-size: 0.85rem;
+  }
+  
+  .btn {
+    padding: 7px 8px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    justify-items: center;
+  }
+  
+  .game-card {
+    max-width: 175px;
+  }
+  
+  .game-name {
+    font-size: 0.8rem;
+  }
+  
+  .btn {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+}

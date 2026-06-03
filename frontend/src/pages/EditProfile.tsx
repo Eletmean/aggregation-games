@@ -14,6 +14,15 @@ interface Game {
   image_url?: string;
 }
 
+// Функция для получения base64 изображения
+const getBase64Image = (avatar: string | undefined): string => {
+  if (!avatar) return '';
+  if (avatar.startsWith('data:image')) return avatar; // уже base64
+  if (avatar.startsWith('/static/')) return avatar;
+  if (avatar.startsWith('http')) return avatar;
+  return `/static/default-avatar.png`;
+};
+
 const EditProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user: contextUser, logout } = useAuth();
@@ -31,7 +40,6 @@ const EditProfile: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [user, setUser] = useState<UserProfile | null>(null);
   
-  // Реальные данные игр
   const [userGames, setUserGames] = useState<UserGame[]>([]);
   const [allGames, setAllGames] = useState<Game[]>([]);
   const [loadingGames, setLoadingGames] = useState(false);
@@ -55,8 +63,9 @@ const EditProfile: React.FC = () => {
         favorite_game: userData.favorite_game || '',
       });
       
+      // Устанавливаем превью аватара (может быть base64 или URL)
       if (userData.avatar) {
-        setAvatarPreview(userData.avatar);
+        setAvatarPreview(getBase64Image(userData.avatar));
       }
 
       await fetchUserGames();
@@ -226,7 +235,6 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  // Доступные для добавления игры (которых нет у пользователя)
   const availableGames = allGames.filter(game => 
     !userGames.some(userGame => userGame.game.id === game.id)
   );
@@ -253,14 +261,14 @@ const EditProfile: React.FC = () => {
                   <div className="avatar-preview-container">
                     {avatarPreview ? (
                       <img 
-                        src={avatarPreview.startsWith('data:') ? avatarPreview : getAvatarUrl(avatarPreview)}
+                        src={avatarPreview}
                         alt="Avatar preview" 
                         className="avatar-preview"
                         onError={handleImageError}
                       />
                     ) : (
                       <img 
-                        src={getAvatarUrl('')}
+                        src="/static/default-avatar.png"
                         alt="Default avatar" 
                         className="avatar-preview"
                         onError={handleImageError}
@@ -345,7 +353,6 @@ const EditProfile: React.FC = () => {
                 <div className="games-section">
                   <h3 className="section-title">Мои игры</h3>
                   
-                  {/* Мои игры */}
                   <div className="my-games-list">
                     {userGames.length === 0 ? (
                       <p className="no-games-message">Вы еще не добавили игры</p>
@@ -372,7 +379,6 @@ const EditProfile: React.FC = () => {
                     )}
                   </div>
                   
-                  {/* Добавление игры - выпадающий список */}
                   <div className="add-game-section">
                     <h4 className="add-game-title">Добавить игру</h4>
                     <div className="add-game-controls">

@@ -33,7 +33,8 @@ interface Friend {
 interface GalleryImage {
   id: number;
   post_id: number;
-  image_url: string;
+  image_data: string;
+  image_mime: string;
   created_at: string;
 }
 
@@ -48,7 +49,7 @@ interface Post {
   commentsList?: Comment[];
   time: string;
   privacy: string;
-  photos: string[];
+  photos: { image_data: string; image_mime: string }[];
   isLiked?: boolean;
   showComments?: boolean;
 }
@@ -91,7 +92,7 @@ const Profile: React.FC = () => {
   
   // Состояния для просмотра фото из поста
   const [showPostPhotosModal, setShowPostPhotosModal] = useState<boolean>(false);
-  const [selectedPostPhotos, setSelectedPostPhotos] = useState<string[]>([]);
+  const [selectedPostPhotos, setSelectedPostPhotos] = useState<{ image_data: string; image_mime: string }[]>([]);
   const [selectedPostPhotoIndex, setSelectedPostPhotoIndex] = useState<number>(0);
   
   // Состояния для донатов
@@ -111,6 +112,12 @@ const Profile: React.FC = () => {
   const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
   
   const galleryLoadedRef = useRef<boolean>(false);
+
+  // Функция для получения base64 изображения
+  const getBase64Image = (imageData: string, mimeType: string): string => {
+    if (!imageData) return '';
+    return `data:${mimeType || 'image/jpeg'};base64,${imageData}`;
+  };
 
   const loadUserGames = useCallback(async () => {
     try {
@@ -236,7 +243,10 @@ const Profile: React.FC = () => {
         commentsList: [],
         time: new Date(post.created_at).toLocaleString(),
         privacy: post.privacy,
-        photos: post.images.map(img => img.image_url),
+        photos: post.images?.map(img => ({
+          image_data: img.image_data || img.image_url,
+          image_mime: img.image_mime || 'image/jpeg'
+        })) || [],
         isLiked: post.is_liked,
         showComments: false
       }));
@@ -415,7 +425,7 @@ const Profile: React.FC = () => {
   };
 
   // Функции для просмотра фото из поста
-  const openPostPhotosModal = (photos: string[], index: number = 0) => {
+  const openPostPhotosModal = (photos: { image_data: string; image_mime: string }[], index: number = 0) => {
     setSelectedPostPhotos(photos);
     setSelectedPostPhotoIndex(index);
     setShowPostPhotosModal(true);
@@ -725,7 +735,7 @@ const Profile: React.FC = () => {
               <div className="profile-main-info">
                 <div className="profile-avatar-large">
                   <img 
-                    src={getAvatarUrl(user?.avatar)} 
+                    src={user?.avatar?.startsWith('/') ? getAvatarUrl(user?.avatar) : getBase64Image(user?.avatar || '', user?.avatar_mime || 'image/jpeg')} 
                     alt="Avatar" 
                     className="profile-avatar-img"
                     onError={handleAvatarError}
@@ -856,7 +866,7 @@ const Profile: React.FC = () => {
                         onClick={() => setSelectedFullImage(image)}
                       >
                         <img 
-                          src={getImageUrl(image.image_url)} 
+                          src={getBase64Image(image.image_data, image.image_mime)}
                           alt={`Фото ${index + 1}`}
                           onError={handleImageError}
                         />
@@ -870,7 +880,7 @@ const Profile: React.FC = () => {
                 <div className="create-post-header">
                   <div className="create-post-avatar">
                     <img 
-                      src={getAvatarUrl(user?.avatar)} 
+                      src={user?.avatar?.startsWith('/') ? getAvatarUrl(user?.avatar) : getBase64Image(user?.avatar || '', user?.avatar_mime || 'image/jpeg')} 
                       alt={user.username}
                       onError={handleAvatarError}
                     />
@@ -940,7 +950,7 @@ const Profile: React.FC = () => {
                         {post.photos.length === 1 ? (
                           <div className="single-photo">
                             <img 
-                              src={getImageUrl(post.photos[0])} 
+                              src={getBase64Image(post.photos[0].image_data, post.photos[0].image_mime)} 
                               alt="Post" 
                               onError={handleImageError}
                               onClick={() => openPostPhotosModal(post.photos, 0)}
@@ -957,7 +967,7 @@ const Profile: React.FC = () => {
                                 style={{ cursor: 'pointer' }}
                               >
                                 <img 
-                                  src={getImageUrl(photo)} 
+                                  src={getBase64Image(photo.image_data, photo.image_mime)} 
                                   alt={`Post ${index + 1}`}
                                   onError={handleImageError}
                                 />
@@ -1299,12 +1309,18 @@ const Profile: React.FC = () => {
                   className="post-photos-modal-item"
                   onClick={() => {
                     setSelectedPostPhotoIndex(index);
-                    setSelectedFullImage({ id: index, post_id: 0, image_url: photo, created_at: '' });
+                    setSelectedFullImage({ 
+                      id: index, 
+                      post_id: 0, 
+                      image_data: photo.image_data, 
+                      image_mime: photo.image_mime, 
+                      created_at: '' 
+                    });
                     setShowPostPhotosModal(false);
                   }}
                 >
                   <img 
-                    src={getImageUrl(photo)} 
+                    src={getBase64Image(photo.image_data, photo.image_mime)} 
                     alt={`Фото ${index + 1}`}
                     onError={handleImageError}
                   />
@@ -1351,7 +1367,7 @@ const Profile: React.FC = () => {
             </>
           )}
           <img 
-            src={getImageUrl(selectedPostPhotos[selectedPostPhotoIndex] || selectedFullImage.image_url)} 
+            src={getBase64Image(selectedFullImage.image_data, selectedFullImage.image_mime)} 
             alt="Full size"
             onClick={(e) => e.stopPropagation()}
             onError={handleImageError}

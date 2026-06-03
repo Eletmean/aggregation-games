@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // ПРЯМАЯ ССЫЛКА НА БЭКЕНД
-const API_URL = 'https://aggregation-games-backend.onrender.com/api/';
+const API_URL = 'https://agg-games-backend.onrender.com/api/';
 
 console.log('API URL:', API_URL);
 
@@ -15,6 +15,7 @@ export interface User {
   last_name?: string;
   bio?: string;
   avatar?: string;
+  avatar_mime?: string;
   favorite_game?: string;
   profile?: {
     created_at: string;
@@ -29,6 +30,7 @@ export interface User {
 
 export interface UserProfile extends User {
   avatar_url?: string;
+  avatar_mime?: string;
 }
 
 export interface Game {
@@ -47,7 +49,8 @@ export interface UserGame {
 // Post types
 export interface PostImage {
   id: number;
-  image_url: string;
+  image_data: string;
+  image_mime: string;
   created_at: string;
 }
 
@@ -187,7 +190,8 @@ export interface MyDonator {
 export interface GalleryImage {
   id: number;
   post_id: number;
-  image_url: string;
+  image_data: string;
+  image_mime: string;
   created_at: string;
 }
 

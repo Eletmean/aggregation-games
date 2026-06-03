@@ -5,15 +5,12 @@ from typing import List, Optional
 from uuid import UUID
 import os
 import shutil
+import base64
 from datetime import datetime, timezone
 
 from .. import models, schemas
 from ..database import get_db
 from ..auth import get_current_active_user, get_current_user_optional
-from ..utils.cloudinary import init_cloudinary, upload_image
-
-# Инициализация Cloudinary
-init_cloudinary()
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
@@ -123,14 +120,20 @@ async def create_post(
     if images:
         for image in images:
             if image and image.filename:
-                # Загружаем в Cloudinary
-                image_url = upload_image(image, f"posts/{db_post.id}")
-                if image_url:
+                try:
+                    # Читаем файл и конвертируем в base64
+                    contents = await image.read()
+                    base64_string = base64.b64encode(contents).decode('utf-8')
+                    
                     db_image = models.PostImage(
                         post_id=db_post.id,
-                        image_url=image_url
+                        image_data=base64_string,
+                        image_mime=image.content_type or "image/jpeg"
                     )
                     db.add(db_image)
+                    print(f"Image uploaded as base64 for post {db_post.id}, size: {len(base64_string)} chars")
+                except Exception as e:
+                    print(f"Error converting image to base64: {e}")
     
     db.commit()
     db.refresh(db_post)
@@ -411,7 +414,8 @@ def get_user_gallery(
             all_images.append({
                 "id": img.id,
                 "post_id": post.id,
-                "image_url": img.image_url,
+                "image_data": img.image_data,
+                "image_mime": img.image_mime,
                 "created_at": img.created_at
             })
     

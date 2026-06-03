@@ -49,7 +49,11 @@ class User(Base):
     
     @property
     def avatar(self):
-        return self.profile.avatar if self.profile else "/static/default-avatar.png"
+        return self.profile.avatar if self.profile else ""
+    
+    @property
+    def avatar_mime(self):
+        return self.profile.avatar_mime if self.profile else "image/jpeg"
 
     def to_dict(self):
         return {
@@ -62,6 +66,7 @@ class User(Base):
             "updated_at": self.updated_at,
             "bio": self.bio,
             "avatar": self.avatar,
+            "avatar_mime": self.avatar_mime,
             "is_active": self.is_active
         }
 
@@ -71,7 +76,8 @@ class UserProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     bio = Column(Text, default="")
-    avatar = Column(String(500), default="/static/default-avatar.png")
+    avatar = Column(Text, default="")  # base64 строка
+    avatar_mime = Column(String(50), default="image/jpeg")  # тип изображения
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -132,7 +138,8 @@ class PostImage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    image_url = Column(String(500), nullable=False)
+    image_data = Column(Text, nullable=False)  # base64 строка
+    image_mime = Column(String(50), default="image/jpeg")  # тип изображения
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     post = relationship("Post", back_populates="images")

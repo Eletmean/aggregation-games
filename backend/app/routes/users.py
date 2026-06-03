@@ -4,14 +4,11 @@ from datetime import datetime, timedelta
 from uuid import UUID
 import os
 import shutil
+import base64
 from typing import Optional
 
 from .. import models, schemas, auth
 from ..database import get_db
-from ..utils.cloudinary import init_cloudinary, upload_image
-
-# Инициализация Cloudinary
-init_cloudinary()
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -46,7 +43,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         db_profile = models.UserProfile(
             user_id=db_user.id,
             bio="",
-            avatar="/static/default-avatar.png"
+            avatar="",  # Пустой аватар
+            avatar_mime="image/jpeg"
         )
         db.add(db_profile)
         db.commit()
@@ -100,7 +98,8 @@ def read_users_me(
         profile = models.UserProfile(
             user_id=current_user.id,
             bio="",
-            avatar="/static/default-avatar.png"
+            avatar="",
+            avatar_mime="image/jpeg"
         )
         db.add(profile)
         db.commit()
@@ -138,7 +137,8 @@ def update_user(
         profile = models.UserProfile(
             user_id=current_user.id,
             bio="",
-            avatar="/static/default-avatar.png"
+            avatar="",
+            avatar_mime="image/jpeg"
         )
         db.add(profile)
     
@@ -146,10 +146,15 @@ def update_user(
         profile.bio = bio
     
     if avatar and avatar.filename:
-        # Загружаем аватар в Cloudinary
-        image_url = upload_image(avatar, "avatars")
-        if image_url:
-            profile.avatar = image_url
+        try:
+            # Читаем файл и конвертируем в base64
+            contents = avatar.file.read()
+            base64_string = base64.b64encode(contents).decode('utf-8')
+            profile.avatar = base64_string
+            profile.avatar_mime = avatar.content_type or "image/jpeg"
+            print(f"Avatar uploaded as base64, size: {len(base64_string)} chars")
+        except Exception as e:
+            print(f"Error converting avatar to base64: {e}")
     
     current_user.updated_at = datetime.utcnow()
     profile.updated_at = datetime.utcnow()
